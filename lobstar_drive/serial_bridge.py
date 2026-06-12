@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Bool, String
+from std_msgs.msg import Bool, String, Int8
 import serial
 import threading
 
@@ -25,7 +25,7 @@ class SerialBridge(Node):
         self.status_pub = self.create_publisher(String, '/esp32_status', 10)
 
         self.subscription = self.create_subscription(
-            String,
+            Int8,
             '/direction',
             self.listener_callback,
             10
@@ -35,7 +35,9 @@ class SerialBridge(Node):
         self.reader_thread.start()
 
     def listener_callback(self, msg):
-        cmd = 'LED 1\n' if msg.data else 'LED 0\n'
+        actuator = 0 if (msg.data < 3) else 1
+        direction = (msg.data-(3*actuator)) - 1
+        cmd = f"<ACTUATOR_{actuator}:{direction}>"
         self.ser.write(cmd.encode())
         self.get_logger().info(f'Sent to ESP32: {cmd.strip()}')
 
