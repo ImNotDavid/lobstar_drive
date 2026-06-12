@@ -25,6 +25,8 @@ setup(
     entry_points={
         'console_scripts': [
             'drive_node = lobstar_drive.drive_node:main',
+            'serial_bridge = lobstar_drive.serial_bridge:main',
+            'two_key_pub.py = lobstar_drive.two_key_pub:main',
         ],
     },
 )
