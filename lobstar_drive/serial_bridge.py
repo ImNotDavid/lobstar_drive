@@ -9,7 +9,7 @@ class SerialBridge(Node):
     def __init__(self):
         super().__init__('serial_bridge')
 
-        self.declare_parameter('port', '/dev/ttyUSB0')
+        self.declare_parameter('port', '/dev/ACM0')
         self.declare_parameter('baud', 115200)
 
         port = self.get_parameter('port').value
