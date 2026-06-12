@@ -1,0 +1,11 @@
+teleop_twist_joy_node:
+  ros__parameters:
+    axis_linear:
+      x: 1          # left stick vertical
+    axis_angular:
+      yaw: 0        # left stick horizontal
+    scale_linear:
+      x: 1.5        # max m/s
+    scale_angular:
+      yaw: 8.0      # max rad/s
+    enable_button: 0        # hold to move
