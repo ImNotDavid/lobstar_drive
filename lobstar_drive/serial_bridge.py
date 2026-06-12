@@ -37,7 +37,7 @@ class SerialBridge(Node):
     def listener_callback(self, msg):
         actuator = 0 if (msg.data < 3) else 1
         direction = (msg.data-(3*actuator)) - 1
-        cmd = f"<ACTUATOR_{actuator}:{direction}>"
+        cmd = f"<ACTUATOR_{actuator}:{direction}>\n"
         self.ser.write(cmd.encode())
         self.get_logger().info(f'Sent to ESP32: {cmd.strip()}')
 
