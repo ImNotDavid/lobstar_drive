@@ -42,13 +42,14 @@ class DriveNode(Node):
         v_left = msg.linear.x - msg.angular.z * half_sep   # m/s
         v_right = msg.linear.x + msg.angular.z * half_sep  # m/s
 
-        # Convert to mm/s and apply forward-direction sign convention [-,+,+,-]
-        # Left side  (M1, M4): negative = forward
-        # Right side (M2, M3): positive = forward
-        m1 = int(-v_left * 1000)
-        m2 = int(v_right * 1000)
-        m3 = int(v_right * 1000)
-        m4 = int(-v_left * 1000)
+
+        # Left side  (M2, M3)
+        # Right side (M4, M1)
+        m2 = int(v_left * 1000)
+        m4 = int(v_right * 1000)
+        m1 = int(-v_right * 1000)
+        m3 = int(-v_left * 1000)
+
 
         limit = self.max_speed
         m1 = max(-limit, min(limit, m1))
