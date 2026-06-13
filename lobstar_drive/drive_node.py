@@ -1,6 +1,9 @@
+import threading
+
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
+from std_msgs.msg import Float32MultiArray
 import serial
 
 
@@ -37,6 +40,14 @@ class DriveNode(Node):
 
         self.create_subscription(Twist, 'cmd_vel', self._cmd_vel_cb, 10)
 
+        self._speed_pub = self.create_publisher(Float32MultiArray, '/raw_speed', 10)
+
+        # Enable constant wheel speed reporting from the board
+        self.ser.write(b'$upload:0,0,1#\n')
+
+        self._serial_thread = threading.Thread(target=self._read_serial, daemon=True)
+        self._serial_thread.start()
+
     def _cmd_vel_cb(self, msg: Twist):
         half_sep = self.wheel_separation / 2.0
         v_left = msg.linear.x - msg.angular.z * half_sep   # m/s
@@ -45,10 +56,10 @@ class DriveNode(Node):
 
         # Left side  (M2, M3)
         # Right side (M4, M1)
-        m2 = int(v_left * 1000)
-        m4 = int(v_right * 1000)
         m1 = int(-v_right * 1000)
+        m2 = int(v_left * 1000)
         m3 = int(-v_left * 1000)
+        m4 = int(v_right * 1000)
 
 
         limit = self.max_speed
@@ -59,6 +70,24 @@ class DriveNode(Node):
 
         cmd = f'$spd:{m1},{m2},{m3},{m4}#\n'
         self.ser.write(cmd.encode())
+
+    def _read_serial(self):
+        while rclpy.ok():
+            try:
+                line = self.ser.readline().decode(errors='ignore').strip()
+            except Exception:
+                break
+            if not line.startswith('$MSPD:') or not line.endswith('#'):
+                continue
+            try:
+                values = [float(v) / 1000.0 for v in line[6:-1].split(',')]
+            except ValueError:
+                continue
+            if len(values) != 4:
+                continue
+            msg = Float32MultiArray()
+            msg.data = values
+            self._speed_pub.publish(msg)
 
     def destroy_node(self):
         if self.ser.is_open:
